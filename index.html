@@ -1,0 +1,110 @@
+<head> </head>
+
+<body>
+  <span id="sp"></span>
+  <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+  <div id="main" style="width: 600px; height: 400px"></div>
+  <div>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.1.2/dist/echarts.min.js"></script>
+    <script>
+      var game = function () {
+        // 红球
+        this.redBall = new Array(8)
+          .fill("")
+          .map((e, index) => "红球" + (index + 1));
+        // 篮球
+        this.blueBall = new Array(8)
+          .fill("")
+          .map((e, index) => "蓝球" + (index + 1));
+        // 黄球
+        this.yellowBall = new Array(8)
+          .fill("")
+          .map((e, index) => "黄球" + (index + 1));
+        this.allBall = [...this.redBall, ...this.blueBall, ...this.yellowBall];
+      };
+
+      // 获取深度拷贝的小球
+      game.prototype.getCloneBall = function () {
+        return JSON.parse(JSON.stringify(this.allBall));
+      };
+
+      // 获取小球的数量结果
+      game.prototype.getNumberRes = function () {
+        var res = this.getRes();
+        var obj = { red: 0, blue: 0, yellow: 0 };
+        res.forEach((e) => {
+          if (e.indexOf("红球") > -1) {
+            obj.red++;
+          } else if (e.indexOf("蓝球") > -1) {
+            obj.blue++;
+          } else {
+            obj.yellow++;
+          }
+        });
+        return Object.values(obj)
+          .sort((a, b) => b - a)
+          .join("");
+      };
+
+      // 获取12个小球分别是什么
+      game.prototype.getRes = function () {
+        var arr = this.getRandomBall();
+        var newArr = [];
+        for (let i = 0; i < arr.length; i++) {
+          var index = Math.floor(Math.random() * i);
+          newArr.push(arr[index]);
+          arr.splice(index, 1);
+        }
+        return newArr;
+      };
+
+      // 随机打乱小球
+      game.prototype.getRandomBall = function (allBall = this.allBall) {
+        var array = this.getCloneBall();
+        var m = array.length,
+          t,
+          i;
+        while (m) {
+          i = Math.floor(Math.random() * m--);
+          t = array[m];
+          array[m] = array[i];
+          array[i] = t;
+        }
+        return array;
+      };
+      const Game = new game();
+      var obj = {};
+      for (var i = 0; i < 1000; i++) {
+        var key = Game.getNumberRes();
+        if (obj[key]) {
+          obj[key]++;
+        } else {
+          obj[key] = 1;
+        }
+      }
+      console.log("obj", obj);
+      var myChart = echarts.init(document.getElementById("main"));
+      const option = {
+        xAxis: {
+          type: "category",
+          data: Object.keys(obj),
+        },
+        yAxis: {
+          type: "value",
+        },
+        series: [
+          {
+            data: Object.values(obj),
+            type: "bar",
+            showBackground: true,
+            backgroundStyle: {
+              color: "rgba(180, 180, 180, 0.2)",
+            },
+          },
+        ],
+      };
+      // 使用刚指定的配置项和数据显示图表。
+      myChart.setOption(option);
+    </script>
+  </div>
+</body>
